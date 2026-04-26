@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Neural Nexus | Каталог нейросетей</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            color: #f0f0f0;
+            line-height: 1.4;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Контейнер для светлячков */
+        .fireflies-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .firefly {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 6px 2px rgba(255, 255, 200, 0.9);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid #2c2c2c;
+            padding-bottom: 2rem;
+        }
+        .hero h1 {
+            font-size: clamp(2.2rem, 7vw, 3.8rem);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #ffffff 30%, #a0a0a0 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .hero p {
+            color: #aaa;
+            font-size: clamp(0.9rem, 4vw, 1.1rem);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        .cat-card {
+            background: rgba(12, 12, 12, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid #2a2a2a;
+            border-radius: 2rem;
+            padding: 2rem 1.8rem;
+            flex: 1 1 240px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+        .cat-card:nth-child(1) { animation-delay: 0.1s; }
+        .cat-card:nth-child(2) { animation-delay: 0.2s; }
+        .cat-card:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .cat-card:hover {
+            transform: translateY(-6px);
+            background: rgba(19, 19, 19, 0.95);
+            border-color: #5a5a5a;
+            box-shadow: 0 15px 30px rgba(255,255,255,0.05);
+        }
+        .cat-card h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.3px;
+        }
+        .cat-card p {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+        .icon-badge {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            filter: grayscale(1) brightness(1.2);
+        }
+
+        .networks-panel {
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            border: 1px solid #2c2c2c;
+            padding: 1.8rem;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: scale(0.96) translateY(-8px);
+            pointer-events: none;
+        }
+        .networks-panel.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid #fff;
+            padding-left: 1rem;
+        }
+        .panel-header h3 {
+            font-size: 1.6rem;
+            font-weight: 500;
+        }
+        .close-panel {
+            background: none;
+            border: 1px solid #3a3a3a;
+            color: #ddd;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.3rem 1rem;
+            border-radius: 3rem;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .close-panel:hover {
+            background: #1f1f1f;
+            border-color: #aaa;
+            color: white;
+        }
+        .networks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .ai-card {
+            background: rgba(17, 17, 17, 0.9);
+            backdrop-filter: blur(4px);
+            border-radius: 1.5rem;
+            border: 1px solid #262626;
+            padding: 1.2rem 1.2rem 1.2rem 1.2rem;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(12px);
+            animation: cardFadeIn 0.4s forwards;
+        }
+        @keyframes cardFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .ai-card:hover {
+            border-color: #6a6a6a;
+            background: rgba(21, 21, 21, 0.95);
+        }
+        .ai-name {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .ai-link {
+            font-size: 0.75rem;
+            background: #1e1e1e;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            text-decoration: none;
+            color: #cccccc;
+            transition: 0.2s;
+            border: 1px solid #333;
+        }
+        .ai-link:hover {
+            background: #2c2c2c;
+            color: white;
+            border-color: #aaa;
+        }
+        .ai-desc-short {
+            font-size: 0.85rem;
+            color: #bdbdbd;
+            margin: 0.6rem 0;
+            line-height: 1.35;
+        }
+        .btn-more {
+            background: transparent;
+            border: 1px solid #4a4a4a;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #eee;
+            cursor: pointer;
+            margin-top: 0.6rem;
+            align-self: flex-start;
+            transition: 0.2s;
+        }
+        .btn-more:hover {
+            background: #2a2a2a;
+            border-color: #fff;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #0a0a0a;
+            border: 1px solid #3e3e3e;
+            border-radius: 2rem;
+            max-width: 620px;
+            width: 100%;
+            padding: 1.8rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            animation: modalPop 0.25s ease-out;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid #2c2c2c;
+            padding-bottom: 0.6rem;
+        }
+        .modal-header h3 {
+            font-size: 1.7rem;
+            font-weight: 500;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #aaa;
+            line-height: 1;
+        }
+        .close-modal:hover {
+            color: white;
+        }
+        .prompt-section {
+            background: #0f0f0f;
+            border-radius: 1.2rem;
+            padding: 0.2rem 0 0.8rem 0;
+        }
+        .prompt-title {
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.3px;
+            margin: 0.5rem 0 0.8rem 0;
+            color: #ccc;
+            border-left: 2px solid #aaa;
+            padding-left: 0.7rem;
+        }
+        .prompt-list {
+            list-style: none;
+            padding: 0;
+        }
+        .prompt-item {
+            background: #080808;
+            margin-bottom: 1rem;
+            padding: 0.9rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid #252525;
+        }
+        .prompt-code {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #e2e2e2;
+            word-break: break-word;
+            margin-bottom: 0.4rem;
+        }
+        .prompt-description {
+            font-size: 0.75rem;
+            color: #999;
+            border-top: 1px dashed #2a2a2a;
+            margin-top: 0.4rem;
+            padding-top: 0.4rem;
+            letter-spacing: 0.2px;
+        }
+        hr {
+            border-color: #252525;
+            margin: 0.5rem 0;
+        }
+        .modal-footer-note {
+            color: #777;
+            display: block;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 1rem;
+            }
+            .cat-card h2 {
+                font-size: 1.4rem;
+            }
+            .panel-header h3 {
+                font-size: 1.3rem;
+            }
+            .networks-grid {
+                grid-template-columns: 1fr;
+            }
+            .modal-content {
+                margin: 1rem;
+                padding: 1.2rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .categories {
+                gap: 1rem;
+            }
+            .cat-card {
+                padding: 1.2rem;
+            }
+        }
+        button {
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="fireflies-container" id="firefliesContainer"></div>
+
+<div class="container">
+    <div class="hero">
+        <h1>NEURAL NEXUS</h1>
+        <p>Каталог AI-инструментов для дизайна, 3D и графических интерфейсов</p>
+    </div>
+
+    <div class="categories">
+        <div class="cat-card" data-category="design">
+            <div class="icon-badge">🖌️</div>
+            <h2>Дизайн</h2>
+            <p>Генерация концептов, UI/UX, иллюстрации</p>
+        </div>
+        <div class="cat-card" data-category="3d">
+            <div class="icon-badge">🎨</div>
+            <h2>3D объекты</h2>
+            <p>Модели, текстуры, ассеты</p>
+        </div>
+        <div class="cat-card" data-category="interfaces">
+            <div class="icon-badge">🖥️</div>
+            <h2>Графические Интерфейсы</h2>
+            <p>UI фреймы, прототипы, фронтенд-генерация</p>
+        </div>
+    </div>
+
+    <div id="networksPanel" class="networks-panel">
+        <div class="panel-header">
+            <h3 id="panelCategoryTitle"></h3>
+            <button class="close-panel" id="closePanelBtn">✕ Закрыть</button>
+        </div>
+        <div id="networksListContainer" class="networks-grid"></div>
+    </div>
+</div>
+
+<div id="infoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalAiName"></h3>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+    const database = {
+        design: {
+            categoryName: "Дизайн",
+            items: [
+                {
+                    name: "Midjourney",
+                    link: "https://www.midjourney.com/",
+                    shortDesc: "Мощная генерация иллюстраций и концепт-дизайна.",
+                    prompts: [
+                        { text: "cyberpunk cityscape at night, neon lights, rain, cinematic lighting --ar 16:9", desc: "Для создания атмосферного киберпанк-города с неоновыми огнями и дождём" },
+                        { text: "fantasy forest elf village, magical atmosphere, detailed, vibrant colors", desc: "Для проработки сказочной эльфийской деревни в ярких цветах" },
+                        { text: "minimalist product photography of a white ceramic vase, soft shadows, studio light", desc: "Для минималистичной предметной съёмки в студийных условиях" },
+                        { text: "vintage travel poster for Mars, retro futurism, bold typography", desc: "Для создания ретро-футуристического плаката о путешествиях на Марс" }
+                    ]
+                },
+                {
+                    name: "Leonardo.ai",
+                    link: "https://leonardo.ai/",
+                    shortDesc: "Генерация дизайнов, стилей, UI/UX ассетов.",
+                    prompts: [
+                        { text: "steampunk airship flying above clouds, intricate gears, golden hour lighting", desc: "Для детализированного стимпанк-дирижабля в свете золотого часа" },
+                        { text: "character design of a samurai bunny, kawaii style, bright pastel colors", desc: "Для милого персонажа-самурая в пастельных тонах" },
+                        { text: "isometric view of a cozy room with plants and books, warm tones", desc: "Для изометрической иллюстрации уютной комнаты с растениями" },
+                        { text: "surreal dreamscape with floating islands and waterfalls, ethereal glow", desc: "Для сюрреалистического пейзажа с парящими островами и водопадами" }
+                    ]
+                },
+                {
+                    name: "Kandinsky 2.2",
+                    link: "https://kandinsky.ai/",
+                    shortDesc: "Открытая нейросеть для дизайн-концептов.",
+                    prompts: [
+                        { text: "космическая станция будущего, детализированные интерьеры, неоновые акценты", desc: "Для футуристического интерьера космической станции с неоном" },
+                        { text: "акварельный пейзаж с горами и озером, мягкие переходы цветов", desc: "Для создания живописного акварельного горного пейзажа" },
+                        { text: "логотип для бренда одежды в стиле минимализм, золото и черный", desc: "Для лаконичного логотипа в чёрно-золотой гамме" },
+                        { text: "паттерн с тропическими листьями и попугаями, яркий и сочный", desc: "Для яркого повторяющегося узора в тропическом стиле" }
+                    ]
+                }
+            ]
+        },
+        "3d": {
+            categoryName: "3D объекты",
+            items: [
+                {
+                    name: "Meshy AI",
+                    link: "https://www.meshy.ai/",
+                    shortDesc: "Генерация 3D-моделей из текста или фото.",
+                    prompts: [
+                        { text: "low poly dragon, game ready, fire texture, red and orange scales", desc: "Для низкополигонального дракона с текстурой огня (игровой ассет)" },
+                        { text: "detailed 3D model of an ancient Greek column, marble material, realistic weathering", desc: "Для реалистичной колонны из мрамора с эффектом старения" },
+                        { text: "cute fantasy creature like a mushroom fox, stylized, pastel colors", desc: "Для милого стилизованного существа — грибной лисицы" },
+                        { text: "sci-fi weapon railgun, hard surface modeling, metallic and carbon fiber", desc: "Для научно-фантастической рельсотроны из металла и карбона" }
+                    ]
+                },
+                {
+                    name: "Luma AI (Genie)",
+                    link: "https://lumalabs.ai/genie",
+                    shortDesc: "Высококачественная 3D-генерация, текстуры.",
+                    prompts: [
+                        { text: "realistic 3D scan of a classic 1960s chair, worn leather, studio lighting", desc: "Для фотореалистичного 3D-скана винтажного кресла" },
+                        { text: "stylized low-poly village house with thatched roof, hand-painted textures", desc: "Для стилизованного домика с соломенной крышей и ручной покраской" },
+                        { text: "mech robot with weathering effects, rusty metal, desert base", desc: "Для состаренного меха-робота с эффектом ржавчины" },
+                        { text: "ornate jewelry box with velvet interior, detailed engravings, gold accents", desc: "Для детализированной шкатулки с гравировкой и бархатной отделкой" }
+                    ]
+                },
+                {
+                    name: "3DFY.ai",
+                    link: "https://3dfy.ai/",
+                    shortDesc: "Семантическая генерация 3D-ассетов.",
+                    prompts: [
+                        { text: "modern parametric lamp design, curved panels, warm light, minimalist", desc: "Для современной параметрической лампы с изогнутыми панелями" },
+                        { text: "fantasy sword with glowing runes, elven style, polished steel", desc: "Для фэнтезийного меча с эльфийскими светящимися рунами" },
+                        { text: "vintage camera, detailed lens and dials, retro aesthetic, brass elements", desc: "Для винтажной камеры с детализированными объективами и латунью" },
+                        { text: "organic alien plant with bioluminescent pods, sci-fi environment", desc: "Для органического инопланетного растения с биолюминесценцией" }
+                    ]
+                }
+            ]
+        },
+        interfaces: {
+            categoryName: "Графические Интерфейсы",
+            items: [
+                {
+                    name: "Galileo AI",
+                    link: "https://www.usegalileo.ai/",
+                    shortDesc: "Генерация UI-дизайнов, дашбордов, мобильных приложений.",
+                    prompts: [
+                        { text: "fitness app dashboard with activity rings, neon green accents, dark theme", desc: "Для фитнес-приложения с активностью в виде колец и неоновыми акцентами" },
+                        { text: "e-learning platform course page, clean cards, pastel illustrations, rounded corners", desc: "Для страницы курсов на образовательной платформе в мягких тонах" },
+                        { text: "crypto wallet interface with charts and transaction history, glassmorphism style", desc: "Для интерфейса криптокошелька в стиле стекломорфизма" },
+                        { text: "music player UI for streaming service, vinyl record animation, vibrant gradients", desc: "Для интерфейса музыкального плеера с анимацией виниловой пластинки" }
+                    ]
+                },
+                {
+                    name: "Uizard",
+                    link: "https://uizard.io/",
+                    shortDesc: "AI-прототипирование и генерация интерфейсов.",
+                    prompts: [
+                        { text: "food delivery app with restaurant list and map view, orange brand color", desc: "Для приложения доставки еды со списком ресторанов и картой" },
+                        { text: "smart home control panel, sliders for lights and temperature, futuristic icons", desc: "Для панели управления умным домом с ползунками и футуристическими иконками" },
+                        { text: "task manager with kanban board, pastel backgrounds, avatar list", desc: "Для таск-менеджера в виде канбан-доски с пастельными фонами" },
+                        { text: "weather app with animated backgrounds showing sun, rain or snow", desc: "Для погодного приложения с анимированными фонами (солнце/дождь/снег)" }
+                    ]
+                },
+                {
+                    name: "Relume Ipsum + Figma AI",
+                    link: "https://www.relume.io/",
+                    shortDesc: "Генерация прототипов веб-интерфейсов.",
+                    prompts: [
+                        { text: "SaaS landing page with hero section, pricing cards, testimonials grid, blue-white theme", desc: "Для лендинга SaaS-продукта с карточками цен и отзывами" },
+                        { text: "portfolio website for photographer, masonry gallery, elegant serif fonts", desc: "Для сайта-портфолио фотографа в стиле 'каменная кладка'" },
+                        { text: "startup pitch deck interface with metrics and team section, vibrant purple accents", desc: "Для интерфейса питч-дека стартапа с метриками и командой" },
+                        { text: "online store for sneakers, product quick view, filter sidebar, streetwear style", desc: "Для интернет-магазина кроссовок в стиле стритвир с быстрым просмотром" }
+                    ]
+                }
+            ]
+        }
+    };
+
+    const panel = document.getElementById('networksPanel');
+    const panelTitle = document.getElementById('panelCategoryTitle');
+    const networksContainer = document.getElementById('networksListContainer');
+    const closePanelBtn = document.getElementById('closePanelBtn');
+    const modal = document.getElementById('infoModal');
+    const modalAiName = document.getElementById('modalAiName');
+    const modalBodyDiv = document.getElementById('modalBody');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    function openModalWithPrompts(aiData, aiName) {
+        modalAiName.innerText = aiName;
+        let promptsHtml = `
+            <div class="prompt-section">
+                <div class="prompt-title">ПРИМЕРЫ ПРОМТОВ С ПОЯСНЕНИЯМИ</div>
+                <ul class="prompt-list">
+        `;
+        aiData.prompts.forEach(prompt => {
+            promptsHtml += `
+                <li class="prompt-item">
+                    <div class="prompt-code">${escapeHtml(prompt.text)}</div>
+                    <div class="prompt-description">📌 ${escapeHtml(prompt.desc)}</div>
+                </li>
+            `;
+        });
+        promptsHtml += `
+                </ul>
+                <hr style="margin-top: 12px;">
+                <div class="modal-footer-note">Скопируйте промт и адаптируйте под свои задачи</div>
+            </div>
+        `;
+        modalBodyDiv.innerHTML = promptsHtml;
+        modal.classList.add('active');
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderNetworks(categoryKey) {
+        const data = database[categoryKey];
+        if (!data) return;
+        panelTitle.innerText = data.categoryName;
+        let html = '';
+        data.items.forEach((ai, idx) => {
+            const delay = idx * 0.05;
+            html += `
+                <div class="ai-card" style="animation-delay: ${delay}s;">
+                    <div class="ai-name">
+                        <span>${escapeHtml(ai.name)}</span>
+                        <a href="${ai.link}" target="_blank" rel="noopener noreferrer" class="ai-link">сайт</a>
+                    </div>
+                    <div class="ai-desc-short">${escapeHtml(ai.shortDesc)}</div>
+                    <button class="btn-more" data-name="${escapeHtml(ai.name)}" data-catkey="${categoryKey}" data-aiidx="${idx}">подробнее</button>
+                </div>
+            `;
+        });
+        networksContainer.innerHTML = html;
+        panel.classList.add('visible');
+        
+        const btns = document.querySelectorAll('.btn-more');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const catKey = btn.getAttribute('data-catkey');
+                const idxVal = parseInt(btn.getAttribute('data-aiidx'));
+                if (database[catKey] && database[catKey].items[idxVal]) {
+                    const aiItem = database[catKey].items[idxVal];
+                    openModalWithPrompts(aiItem, btn.getAttribute('data-name'));
+                } else {
+                    const nameAttr = btn.getAttribute('data-name');
+                    for (let k in database) {
+                        const found = database[k].items.find(i => i.name === nameAttr);
+                        if (found) {
+                            openModalWithPrompts(found, nameAttr);
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    function closePanel() {
+        panel.classList.remove('visible');
+    }
+
+    const designCard = document.querySelector('.cat-card[data-category="design"]');
+    const threeDCard = document.querySelector('.cat-card[data-category="3d"]');
+    const interfacesCard = document.querySelector('.cat-card[data-category="interfaces"]');
+    
+    function showCategory(category) {
+        renderNetworks(category);
+    }
+    
+    designCard.addEventListener('click', () => showCategory('design'));
+    threeDCard.addEventListener('click', () => showCategory('3d'));
+    interfacesCard.addEventListener('click', () => showCategory('interfaces'));
+    
+    closePanelBtn.addEventListener('click', () => {
+        closePanel();
+    });
+    
+    modal.addEventListener('click', (e) => {
+        if(e.target === modal) closeModal();
+    });
+    closeModalBtn.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (modal.classList.contains('active')) closeModal();
+        }
+    });
+    
+    panel.classList.remove('visible');
+
+    // Генерация светлячков с корректной анимацией
+    function initFireflies() {
+        const container = document.getElementById('firefliesContainer');
+        if (!container) return;
+        const fireflyCount = 70;
+        
+        for (let i = 0; i < fireflyCount; i++) {
+            const firefly = document.createElement('div');
+            firefly.classList.add('firefly');
+            
+            // Случайный размер
+            const size = Math.random() * 3 + 1.5;
+            firefly.style.width = `${size}px`;
+            firefly.style.height = `${size}px`;
+            
+            // Случайная начальная позиция
+            firefly.style.left = `${Math.random() * 100}%`;
+            firefly.style.top = `${Math.random() * 100}%`;
+            
+            // Случайная продолжительность анимации (от 6 до 16 секунд)
+            const duration = Math.random() * 10 + 6;
+            // Случайная задержка перед стартом
+            const delay = Math.random() * 15;
+            
+            // Случайное смещение для полёта
+            const moveX = (Math.random() - 0.5) * 400;
+            const moveY = (Math.random() - 0.5) * 300 - 100;
+            
+            firefly.style.setProperty('--move-x', `${moveX}px`);
+            firefly.style.setProperty('--move-y', `${moveY}px`);
+            
+            // Ключевые кадры анимации через CSS с использованием переменных
+            firefly.style.animation = `flyFirefly ${duration}s ease-in-out infinite`;
+            firefly.style.animationDelay = `${delay}s`;
+            
+            container.appendChild(firefly);
+        }
+        
+        // Добавляем стиль анимации динамически
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `
+            @keyframes flyFirefly {
+                0% {
+                    opacity: 0;
+                    transform: translate(0, 0) scale(0.8);
+                }
+                15% {
+                    opacity: 0.8;
+                }
+                30% {
+                    opacity: 1;
+                    transform: translate(var(--move-x, 100px), var(--move-y, -100px)) scale(1);
+                }
+                60% {
+                    opacity: 0.9;
+                }
+                85% {
+                    opacity: 0.5;
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(calc(var(--move-x, 100px) * 1.4), calc(var(--move-y, -150px) * 1.2)) scale(1.3);
+                }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    }
+    
+    initFireflies();
+</script>
+</body>
+</html>
